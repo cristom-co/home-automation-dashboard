@@ -1,0 +1,6 @@
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Docker (si usas)
+docker-compose.override.yml
