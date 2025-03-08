@@ -1,6 +1,17 @@
-# Archivos del sistema
-.DS_Store
-Thumbs.db
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# Docker (si usas)
-docker-compose.override.yml
+# Entorno virtual
+venv/
+.env
+
+# Logs y caché
+*.log
+*.sqlite3
+
+# Configuración de editor/IDE
+.vscode/
+.idea/

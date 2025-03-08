@@ -1,3 +1,1 @@
-WhatsApp → Send "Turn on light" or "Turn off light".
-FastAPI → Receives the message and saves the light status.
-React Dashboard → Displays whether the light is on or off.
+I want to connect my own API to 'Home Assistant' to use it via WhatsApp
