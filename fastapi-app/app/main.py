@@ -1,36 +1,46 @@
-import os
-import cv2
-
-from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, Request
+from twilio.rest import Client
 from dotenv import load_dotenv
+import os
 
 app = FastAPI()
 
-def generate_frames():
+# Light status
+light_status = {"state": "off"}
 
-    load_dotenv()
 
-    username = os.getenv("CAMERA_USERNAME")
-    password = os.getenv("CAMERA_PASSWORD")
-    ip_address = os.getenv("CAMERA_IP")
-    port = os.getenv("CAMERA_PORT")
-    stream = os.getenv("CAMERA_STREAM")
+load_dotenv()
 
-    camera_url = f"rtsp://{username}:{password}@{ip_address}:{port}/{stream}"
-    cap = cv2.VideoCapture(camera_url)
+# Configure Twilio
+account_sid = os.getenv("ACCOUNT_SID")
+auth_token = os.getenv("AUTH_TOKEN")
+whatsapp_number = os.getenv("WHATSAPP_NUMBER")
+client = Client(account_sid, auth_token)
 
-    while True:
-        success, frame = cap.read()
-        if not success:
-            break
+@app.get("/light-status")
+def get_light_status():
+    return light_status
 
-        _, buffer = cv2.imencode('.jpg', frame)
-        frame_bytes = buffer.tobytes()
+@app.post("/whatsapp")
+async def whatsapp_command(request: Request):
+    global light_status
+    data = await request.form()
+    message = data.get("Body").lower()
 
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+    if "turn on light" in message:
+        light_status["state"] = "on"
+        response_msg = "✅ Light turned on"
+    elif "turn off light" in message:
+        light_status["state"] = "off"
+        response_msg = "✅ Light turned off"
+    else:
+        response_msg = "❌ Command not recognized"
 
-@app.get("/video_feed")
-def video_feed():
-    return StreamingResponse(generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
+    # WhatsApp response
+    client.messages.create(
+        body=response_msg,
+        from_=whatsapp_number,
+        to="whatsapp:your_number"
+    )
+
+    return {"message": "Command received"}
